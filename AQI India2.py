@@ -1,0 +1,194 @@
+#importing libraries
+import numpy as np 
+import pandas as pd 
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+#reading the data
+data = pd.read_csv('India.csv')
+print(data)
+
+#first 10 rows
+f_head=data.head(10)
+print(f_head)
+
+#last 10 rows
+f_tail=data.tail(10)
+print(f_tail)
+
+#printing columns & features of th data
+f_col=data.columns
+print(f_col)
+
+#basic info of dataset
+f_des=data.describe()
+print(f_des)
+
+#dimension of dataset
+f_dim=data.shape
+print(f_dim)
+
+#visualization with high AQI w.r.t states
+data[['Current AQI value','State']].groupby(['State']).mean().plot.bar(color='b')
+plt.show()
+
+#visualization with high AQI w.r.t station names
+data[['Current AQI value','Station Name']].groupby(['Station Name']).mean().plot.bar(color='g')
+plt.show()
+
+#null value count
+n_ull=data.isna().sum()
+print(n_ull)
+
+#drop unnecessary column
+eli=data.drop(['Date'],axis=1,inplace=True)
+print(data.head(10))
+
+#total missing values
+total=data.isnull().sum().sort_values(ascending=False)
+print(total)
+t_head=total.head()
+print(t_head)
+
+percent=(data.isnull().sum()/data.isnull().count()*100).sort_values(ascending=False)
+print(percent)
+missing_data=pd.concat([total, percent],axis=1,keys=['Total','Percent'])
+print(missing_data)
+
+miss_head=missing_data.head()
+print(miss_head)
+
+#percent of missing value (bar-plot)
+sns.barplot(x=missing_data.index, y=missing_data['Percent'])
+plt.xlabel('Features',fontsize=20)
+plt.ylabel('Percent of missing values',fontsize=20)
+plt.title('Percent of missing values by feature',fontsize=20)
+plt.show()
+
+#mean distribution by state
+m_ean=data.groupby('State')[['Current AQI value']].mean()
+print(m_ean)
+
+#checking data distribution
+plt.hist(data.State,range=(0,10000000))
+plt.show()
+
+plt.hist(data.City,range=(0,10000000))
+plt.show()
+#conclusion: no outliers
+
+#fill missing values by mean
+grp_state=data.groupby('State')
+def fill_mean(series):
+    return series.fillna(series.mean())
+
+data['Current AQI value']=grp_state['Current AQI value'].transform(fill_mean)
+print(data.describe())
+
+#sum of null values remains
+n_ull1=data.isna().sum()
+print(n_ull1)
+
+#data distribution after replacing null
+plt.hist(data.State,range=(0,1000))
+plt.show()
+
+plt.hist(data.City,range=(0,1000))
+plt.show()
+print(f_tail)
+
+#AQI Range for corresponding AQI value
+def AQI_Range_Forecast(x):
+    if x<=50:
+        return "Good"
+    elif x>50 and x<=100:
+        return "Moderate"
+    elif x>100 and x<=200:
+        return "Poor"
+    elif x>200 and x<=300:
+        return "Unhealthy"
+    elif x>300 and x<=400:
+        return "Very Unhealthy"
+    elif x>400:
+        return "Hazardous"
+
+data['AQI_Range_Forecast']=data['Current AQI value'].apply(AQI_Range_Forecast)
+print(data.head())
+
+#saving data in new value
+data_n=data
+print(data_n.head())
+
+#remove rows with null values
+data=data.dropna(subset=['Current AQI value'])
+
+#all null values removed
+no_vacant=data.isna().sum()
+print(no_vacant)
+
+#Linear Reg prediction
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_log_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+
+X=data[['State']]
+Y=data['Current AQI value']
+plt.figure()
+print(Y.head())
+
+X_train, X_test, Y_train, Y_test= train_test_split(X,Y,test_size=0.2,random_state=101)
+print(X_train.head())
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+
+tbl1=pd.read_csv("Reynolds.csv")
+print(tbl1)
+
+plt.scatter(tbl1['MonthsEmployed'],tbl1['ScalesSold'])
+plt.ylabel('scales sold')
+plt.xlabel('MonthsEmployed')
+plt.show()
+
+#first order model
+x=tbl1['MonthsEmployed']
+y=tbl1['ScalesSold']
+x2=sm.add_constant(x)
+model=sm.OLS(y,x2)
+Model=model.fit()
+print(Model.summary())
+
+E=Model.resid_pearson
+print(E)
+
+yhat=Model.predict(x2)
+print(yhat)
+
+plt.scatter(yhat,E)
+plt.show()
+
+#2nd order curvilinear
+X_sq=(x**2)
+print(X_sq)
+
+x_new=np.column_stack((x,X_sq))
+x_new2=sm.add_constant(x_new)
+model2=sm.OLS(y,x_new2)
+Model2=model2.fit()
+print(Model2.summary())
+
+E2=Model2.resid_pearson
+print(E2)
+
+yhat2=Model2.predict(x_new2)
+plt.scatter(yhat2,E2)
+print(yhat2)
+plt.show()
+
+
